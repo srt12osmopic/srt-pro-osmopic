@@ -429,7 +429,7 @@ window.playDRMVideo = async (lectureTitle, rawMpdUrl) => {
             console.error("DRM Error:", e.detail.code);
         });
 
-        const proxyUrl = `http://localhost:3000/proxy?url=${encodeURIComponent(rawMpdUrl)}`;
+        const proxyUrl = `https://srt-pro-osmopic.onrender.com/api/get-batch-details?batchId=${batchId}`;
         
         try {
             await window.shakaPlayerInstance.load(proxyUrl);
