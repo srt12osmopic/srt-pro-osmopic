@@ -1,0 +1,1052 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+
+    <!-- =========================================================
+         CSS: External Stylesheets
+         ========================================================= -->
+
+    <!-- Lucide Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.258.0/font/lucide.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/Radha.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.6/shaka-player.ui.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.6/controls.min.css">
+
+    <!-- =========================================================
+         CSS: Inline Styles
+         ========================================================= -->
+    <style>
+        /* =========================================================
+           🚀 THE ULTIMATE RESPONSIVE FIX (MOBILE + DESKTOP)
+           ========================================================= */
+        html, body {
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow-x: hidden !important;
+            background-color: var(--bg-secondary) !important;
+        }
+
+        /* 🚫 डेस्कटॉप पर मोबाइल जैसा सफेद डब्बा और शैडो हमेशा के लिए उड़ा दो */
+        #wrapper, .app-container, .main-content, .container, .batches-page {
+            max-width: 1200px !important; /* Wide layout for reference site look */
+            width: 100% !important;
+            margin: 0 auto !important;
+            padding-left: 15px !important;
+            padding-right: 15px !important;
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+        }
+
+                /* 📱 + 💻 GRID MAGIC: मोबाइल पर 1-2, डेस्कटॉप पर 3-4 कार्ड्स ऑटोमैटिक सेट होंगे */
+        .batches-container, #batches-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important; /* 320px se boxes bade honge */
+            gap: 24px !important;
+            width: 100% !important;
+            max-width: 100% !important; 
+            margin: 20px auto !important;
+            padding: 10px 0 !important;
+            justify-content: center !important;
+            align-items: stretch !important;
+        }
+
+
+        /* कार्ड्स को ग्रिड के अंदर पूरा फैलने दो */
+        .batch-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+        }
+
+        /* =========================================================
+           ── User's Original Layout & Community Styles ──
+           ========================================================= */
+        #wrapper {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        #animationCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background: transparent;
+        }
+
+        /* ── Community Banner ── */
+        .global-community-banner {
+            width: 100%;
+            max-width: 920px;
+            margin: 0 auto 18px;
+            padding: 0;
+        }
+
+        .community-banner-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background-color: var(--primary-color);
+            color: #FFFFFF;
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius-lg);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all var(--transition-fast);
+            box-shadow: 0 0 0 0 rgba(90, 75, 218, 0.4), var(--card-shadow);
+            position: relative;
+        }
+
+        .community-banner-btn:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            box-shadow: 0 0 0 4px rgba(90, 75, 218, 0.2), var(--card-shadow-hover);
+            transform: translateY(-1px);
+        }
+
+        .community-banner-btn i {
+            font-size: 18px;
+        }
+
+        .community-banner-btn .community-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #EF4444;
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+        }
+
+        /* ── Community Popup ── */
+        #srOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.55);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999999;
+            padding: 20px;
+            transition: opacity .18s ease;
+        }
+
+        #srPopup {
+            width: 100%;
+            max-width: 400px;
+            background: #fff;
+            border-radius: 24px;
+            padding: 32px 24px 24px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 15px 50px rgba(0,0,0,.18);
+            animation: popupShow .25s ease;
+            font-family: Arial, sans-serif;
+        }
+
+        #srClose {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: #111;
+            transition: .2s ease;
+        }
+
+        #srClose:hover {
+            background: #e5e7eb;
+            transform: scale(1.08);
+        }
+
+        #srIcon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #229ED9, #25D366);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            font-size: 36px;
+            box-shadow: 0 10px 25px rgba(0,0,0,.15);
+        }
+
+        #srTitle {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        #srSub {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        #srBtns {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .srBtn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 54px;
+            border-radius: 14px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            transition: .2s ease;
+        }
+
+        .srBtn:hover {
+            opacity: .92;
+            transform: translateY(-1px);
+        }
+
+        .srBtn svg {
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .srTelegram { background: #229ED9; }
+        .srWhatsapp { background: #25D366; }
+
+        @keyframes popupShow {
+            from { opacity: 0; transform: translateY(20px) scale(.95); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .global-community-banner {
+                margin: 0 auto 15px;
+            }
+
+            .community-banner-btn {
+                padding: 12px 18px;
+                font-size: 15px;
+            }
+
+            .community-banner-btn i {
+                font-size: 16px;
+            }
+
+            .community-banner-btn .community-badge {
+                top: 6px;
+                right: 6px;
+                font-size: 10px;
+                min-width: 18px;
+                height: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #srPopup  { padding: 28px 18px 20px; }
+            #srTitle  { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =========================================================
+         HTML: App Shell
+         ========================================================= -->
+
+    <!-- Wrapper for content -->
+    <div id="wrapper"></div>
+
+    <!-- Continue Watching Bottom Slider -->
+    <div id="continue-watching-container" style="display: none;">
+        <!-- Will be populated by JavaScript -->
+    </div>
+
+    <!-- Pull to Refresh Indicator -->
+    <div id="pull-to-refresh" class="pull-to-refresh">
+        <div class="pull-refresh-icon">
+            <i class="fa-solid fa-arrow-down"></i>
+        </div>
+        <span class="pull-refresh-text">Pull to refresh</span>
+    </div>
+
+    <div class="app-container">
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo" id="app-logo" style="cursor: pointer;">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQCg5id4_FFO1s3IBkcNdWmvE-tkQ_RaZcFiA&s" alt="Physics Wallah Logo" height="50" width="50">
+                    </div>
+                    <div class="header-actions">
+                        <button id="header-search-btn" class="icon-btn" aria-label="Search">
+                            <i class="fa-solid fa-search"></i>
+                        </button>
+                        <button id="reload-app" class="icon-btn" aria-label="Reload" style="position: relative; z-index: 10;">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-btn" aria-label="Toggle dark mode">
+                            <i class="fa-solid fa-moon"></i>
+                        </button>
+                                                <a href="#favorites" class="icon-btn" aria-label="Favorites">
+                            <i class="fa-solid fa-heart"></i>
+                        </a>
+                        <button class="icon-btn" data-open-community aria-label="Community">
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="container">
+                <div id="app-view">
+                    <!-- Content will be loaded here dynamically -->
+                    <div class="page-loading">
+                        <div class="loader"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="container">
+                <p>&copy; 2026 srt meta All Rights Reserved.</p>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- =========================================================
+         HTML: Templates
+         ========================================================= -->
+
+    <!-- Template: Batches (Home Page) -->
+    <template id="batches-template">
+        <div class="batches-page">
+            <!-- Search -->
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <i class="fa-solid fa-search search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search batches..." autocomplete="off">
+                    <button id="clear-search" class="clear-btn"><i class="fa-solid fa-times"></i></button>
+                </div>
+                <div id="search-suggestions" class="search-suggestions"></div>
+            </div>
+
+            <!-- Study Material Section -->
+            <div class="study-material-wrapper" style="width: 100%; max-width: 920px; margin: 12px auto; font-family: inherit; box-sizing: border-box; padding: 0 10px;">
+                <div class="study-material-header" id="study-material-header" style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 14px 20px;
+                    background: linear-gradient(135deg, var(--card-bg, #1a1a1a), var(--bg-secondary, #121212));
+                    border: 1px solid var(--card-border, #333);
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: var(--card-shadow);
+                ">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-book-open-reader" style="color: var(--primary-color, #7262f0); font-size: 18px;"></i>
+                        <span style="font-weight: 600; font-size: 15px; color: var(--text-primary, #fff);">Study Material</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="study-material-status-badge" class="badge" style="background: var(--primary-color, #7262f0); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 20px; display: none;">Exams</span>
+                        <i class="fa-solid fa-chevron-down" id="study-material-arrow" style="transition: transform 0.3s ease; color: var(--text-secondary, #ccc);"></i>
+                    </div>
+                </div>
+                <div class="study-material-body" id="study-material-body" style="
+                    display: none;
+                    margin-top: 8px;
+                    background: var(--card-bg, #1a1a1a);
+                    border: 1px solid var(--card-border, #333);
+                    border-radius: 12px;
+                    padding: 16px;
+                    box-shadow: var(--card-shadow);
+                    box-sizing: border-box;
+                ">
+                    <!-- Dynamic Breadcrumb Navigation -->
+                    <div id="study-material-breadcrumb" style="display: none; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; font-size: 13px; color: var(--text-secondary);">
+                        <!-- Populate breadcrumb links dynamically -->
+                    </div>
+
+                    <!-- Content Container -->
+                    <div id="study-material-content" style="min-height: 80px; position: relative;">
+                        <!-- Loading spinner -->
+                        <div id="study-material-loader" style="display: none; justify-content: center; align-items: center; padding: 24px 0;">
+                            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; color: var(--primary-color, #7262f0);"></i>
+                        </div>
+                        <!-- Inner items list -->
+                        <div id="study-material-items-grid" style="
+                            display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                            gap: 12px;
+                        ">
+                            <!-- Items populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batch Filters -->
+            <div class="batch-filter">
+                <button class="filter-btn active" data-filter="all">All Batches</button>
+                                <a href="#favorites" class="filter-btn" data-filter="favorites">
+                    <i class="fa-solid fa-heart"></i> Favorites
+                </a>
+            </div>
+
+            <!-- Batch Grid -->
+            <div class="batches-container" id="batches-grid">
+                <!-- Batch cards will be loaded here -->
+                <div class="skeleton-container">
+                    <!-- Skeleton loaders -->
+                </div>
+            </div>
+        </div>
+    </template>
+    <!-- Template: Batch Details -->
+    <template id="batch-details-template">
+        <div class="batch-details-page">
+
+            <div class="page-header-bar">
+                <div class="back-button">
+                    <a href="#batches" class="back-link">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Batches
+                    </a>
+                </div>
+                            </div>
+    
+            <!-- Breadcrumb Navigation -->
+            <nav class="breadcrumb-nav" id="breadcrumb-nav">
+                <ol class="breadcrumb-list">
+                    <li class="breadcrumb-item">
+                        <a href="#batches" class="breadcrumb-link">
+                            <i class="fa-solid fa-home"></i>
+                            <span>Batches</span>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-separator">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        <span class="breadcrumb-current">Batch Details</span>
+                    </li>
+                </ol>
+            </nav>
+
+            <div class="batch-header">
+                <div class="batch-header-content">
+                    <div class="batch-image skeleton-bg">
+                        <div class="loading-spinner"></div>
+                    </div>
+                    <div class="batch-info">
+                        <h1 class="batch-title skeleton-text"></h1>
+                        <p class="batch-subtitle skeleton-text"></p>
+                        <div class="batch-meta skeleton-text"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Schedule Section -->
+            <div class="schedule-card">
+                <div class="schedule-header">
+                    <h2 class="schedule-title">
+                        <i class="fa-solid fa-calendar-day"></i> Today's Schedule
+                    </h2>
+                </div>
+                <div class="schedule-container" id="schedule-container">
+                    <!-- Schedule items will be loaded here -->
+                    <div class="schedule-item skeleton-card">
+                        <div class="schedule-item-header">
+                            <div class="schedule-subject skeleton-text" style="width: 40%;"></div>
+                            <div class="schedule-status skeleton-text" style="width: 20%;"></div>
+                        </div>
+                        <div class="schedule-topic skeleton-text" style="width: 90%;"></div>
+                        <div class="schedule-topic skeleton-text" style="width: 60%;"></div>
+                        <div class="schedule-time skeleton-text" style="width: 50%;"></div>
+                        <div class="schedule-tags">
+                            <div class="schedule-tag skeleton-text" style="width: 30%;"></div>
+                            <div class="schedule-tag skeleton-text" style="width: 30%;"></div>
+                        </div>
+                    </div>
+                    <div class="schedule-item skeleton-card">
+                        <div class="schedule-item-header">
+                            <div class="schedule-subject skeleton-text" style="width: 40%;"></div>
+                            <div class="schedule-status skeleton-text" style="width: 20%;"></div>
+                        </div>
+                        <div class="schedule-topic skeleton-text" style="width: 90%;"></div>
+                        <div class="schedule-topic skeleton-text" style="width: 60%;"></div>
+                        <div class="schedule-time skeleton-text" style="width: 50%;"></div>
+                        <div class="schedule-tags">
+                            <div class="schedule-tag skeleton-text" style="width: 30%;"></div>
+                            <div class="schedule-tag skeleton-text" style="width: 30%;"></div>
+                        </div>
+                    </div>
+                    <div class="schedule-item skeleton-card">
+                        <div class="schedule-item-header">
+                            <div class="schedule-subject skeleton-text" style="width: 40%;"></div>
+                            <div class="schedule-status skeleton-text" style="width: 20%;"></div>
+                        </div>
+                        <div class="schedule-topic skeleton-text" style="width: 90%;"></div>
+                        <div class="schedule-topic skeleton-text" style="width: 60%;"></div>
+                        <div class="schedule-time skeleton-text" style="width: 50%;"></div>
+                        <div class="schedule-tags">
+                            <div class="schedule-tag skeleton-text" style="width: 30%;"></div>
+                            <div class="schedule-tag skeleton-text" style="width: 30%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="batch-tabs-container">
+                <div class="batch-tabs-wrapper">
+                    <div class="batch-tabs">
+                        <button class="tab-btn active" data-tab="subjects"><i class="fa-solid fa-book" style="margin-right: 6px;"></i>Subjects</button>
+                        <button class="tab-btn" data-tab="khazana"><i class="fa-solid fa-gem" style="margin-right: 6px;"></i>Khazana</button>
+                        <button class="tab-btn" data-tab="tests"><i class="fa-solid fa-file-signature" style="margin-right: 6px;"></i>Tests</button>
+                        <button class="tab-btn" data-tab="announcements"><i class="fa-solid fa-bullhorn" style="margin-right: 6px;"></i>Announcements</button>
+                        <button class="tab-btn" data-tab="community"><i class="fa-solid fa-users" style="margin-right: 6px;"></i>Community</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content">
+                <div id="subjects-tab" class="tab-pane active">
+                    <div class="subjects-grid">
+                        <!-- Subject cards will be loaded here -->
+                    </div>
+                </div>
+                <div id="khazana-tab" class="tab-pane">
+                    <div class="khazana-batch-section">
+                        <!-- Khazana content will be loaded here dynamically -->
+                    </div>
+                </div>
+                <div id="tests-tab" class="tab-pane">
+                    <div class="test-filters-container">
+                        <!-- Filters will be loaded here -->
+                    </div>
+                    <div class="tests-grid">
+                        <!-- Test cards will be loaded here -->
+                    </div>
+                </div>
+                <div id="announcements-tab" class="tab-pane">
+                    <div class="announcements-list">
+                        <!-- Announcements will be loaded here -->
+                    </div>
+                </div>
+                <div id="community-tab" class="tab-pane">
+                    <div class="community-section">
+                        <div class="community-header">
+                            <div class="community-channel-switch">
+                                <button class="channel-switch-btn active" data-channel-type="feed">
+                                    <i class="fa-solid fa-chalkboard-teacher"></i>
+                                    Teacher Feeds
+                                </button>
+                                <button class="channel-switch-btn" data-channel-type="forum">
+                                    <i class="fa-solid fa-users"></i>
+                                    Student Discussion
+                                </button>
+                            </div>
+                        </div>
+                        <div class="community-posts-container">
+                            <div class="community-posts-loading">
+                                <!-- Skeleton posts will be generated dynamically -->
+                            </div>
+                            <div class="community-posts-list">
+                                <!-- Community posts will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </template>
+
+    <!-- Template: Subject Details -->
+    <template id="subject-details-template">
+        <div class="subject-details-page">
+
+            <div class="page-header-bar">
+                <div class="back-button">
+                    <a href="#" class="back-link" id="back-to-batch">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Batch
+                    </a>
+                </div>
+                            </div>
+
+            <!-- Breadcrumb Navigation -->
+            <nav class="breadcrumb-nav" id="breadcrumb-nav">
+                <ol class="breadcrumb-list">
+                    <li class="breadcrumb-item">
+                        <a href="#batches" class="breadcrumb-link">
+                            <i class="fa-solid fa-home"></i>
+                            <span>Batches</span>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-separator">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#" class="breadcrumb-link" id="breadcrumb-batch">
+                            <span>Batch</span>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-separator">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        <span class="breadcrumb-current" id="breadcrumb-subject">Subject</span>
+                    </li>
+                </ol>
+            </nav>
+
+            <h1 class="subject-title skeleton-text"></h1>
+
+            <div class="topics-grid">
+                <!-- Topic cards will be loaded here -->
+            </div>
+
+        </div>
+    </template>
+
+    <!-- Template: Contents (Lectures / Notes / DPP) -->
+    <template id="contents-template">
+        <div class="contents-page">
+
+            <div class="page-header-bar">
+                <div class="back-button">
+                    <a href="#" class="back-link" id="back-to-subject">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Subject
+                    </a>
+                </div>
+                                <div class="task-timer" data-expiry="1782397568">
+                    <i class="fa-regular fa-clock"></i>
+                    <span class="timer-text">Next Task: <strong class="timer-countdown">--:--:--</strong></span>
+                </div>
+                            </div>
+
+            <!-- Breadcrumb Navigation -->
+            <nav class="breadcrumb-nav" id="breadcrumb-nav">
+                <ol class="breadcrumb-list">
+                    <li class="breadcrumb-item">
+                        <a href="#batches" class="breadcrumb-link">
+                            <i class="fa-solid fa-home"></i>
+                            <span>Batches</span>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-separator">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#" class="breadcrumb-link" id="breadcrumb-batch">
+                            <span>Batch</span>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-separator">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#" class="breadcrumb-link" id="breadcrumb-subject">
+                            <span>Subject</span>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-separator">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        <span class="breadcrumb-current" id="breadcrumb-topic">Topic</span>
+                    </li>
+                </ol>
+            </nav>
+
+            <h1 class="topic-title skeleton-text"></h1>
+
+            <div class="content-tabs">
+                <button class="tab-btn active" data-tab="lectures"  data-feature="show_lectures_tab">Lectures</button>
+                <button class="tab-btn"         data-tab="notes"    data-feature="show_notes_tab">Notes</button>
+                <button class="tab-btn"         data-tab="dpp"      data-feature="show_dpp_tab">DPP PDF</button>
+                <button class="tab-btn"         data-tab="dpp-quiz" data-feature="show_dpp_quiz_tab">DPP Quiz</button>
+                <button class="tab-btn"         data-tab="solution" data-feature="show_solutions_tab">Solutions</button>
+            </div>
+
+            <div class="tab-content">
+                <div id="lectures-tab" class="tab-pane active">
+                    <div class="lectures-grid content-grid">
+                        <!-- Lecture cards will be loaded here -->
+                    </div>
+                </div>
+                <div id="notes-tab" class="tab-pane">
+                    <div class="notes-grid content-grid">
+                        <!-- Notes cards will be loaded here -->
+                    </div>
+                </div>
+                <div id="dpp-tab" class="tab-pane">
+                    <div class="dpp-grid content-grid">
+                        <!-- DPP cards will be loaded here -->
+                    </div>
+                </div>
+                <div id="solution-tab" class="tab-pane">
+                    <div class="solutions-grid content-grid">
+                        <!-- Solution cards will be loaded here -->
+                    </div>
+                </div>
+                <div id="dpp-quiz-tab" class="tab-pane">
+                    <div class="dpp-quiz-grid content-grid">
+                        <!-- DPP Quiz cards will be loaded here -->
+                        <div class="quiz-skeleton-container">
+                            <!-- Skeleton loaders for DPP Quiz -->
+                            <div class="quiz-skeleton-card">
+                                <div class="quiz-skeleton-header">
+                                    <div class="quiz-skeleton-icon"></div>
+                                    <div class="quiz-skeleton-status"></div>
+                                </div>
+                                <div class="quiz-skeleton-content">
+                                    <div class="quiz-skeleton-title"></div>
+                                    <div class="quiz-skeleton-meta">
+                                        <div class="quiz-skeleton-info"></div>
+                                        <div class="quiz-skeleton-info"></div>
+                                        <div class="quiz-skeleton-info"></div>
+                                    </div>
+                                    <div class="quiz-skeleton-footer">
+                                        <div class="quiz-skeleton-date"></div>
+                                        <div class="quiz-skeleton-btn"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="quiz-skeleton-card">
+                                <div class="quiz-skeleton-header">
+                                    <div class="quiz-skeleton-icon"></div>
+                                    <div class="quiz-skeleton-status"></div>
+                                </div>
+                                <div class="quiz-skeleton-content">
+                                    <div class="quiz-skeleton-title"></div>
+                                    <div class="quiz-skeleton-meta">
+                                        <div class="quiz-skeleton-info"></div>
+                                        <div class="quiz-skeleton-info"></div>
+                                        <div class="quiz-skeleton-info"></div>
+                                    </div>
+                                    <div class="quiz-skeleton-footer">
+                                        <div class="quiz-skeleton-date"></div>
+                                        <div class="quiz-skeleton-btn"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="quiz-skeleton-card">
+                                <div class="quiz-skeleton-header">
+                                    <div class="quiz-skeleton-icon"></div>
+                                    <div class="quiz-skeleton-status"></div>
+                                </div>
+                                <div class="quiz-skeleton-content">
+                                    <div class="quiz-skeleton-title"></div>
+                                    <div class="quiz-skeleton-meta">
+                                        <div class="quiz-skeleton-info"></div>
+                                        <div class="quiz-skeleton-info"></div>
+                                        <div class="quiz-skeleton-info"></div>
+                                    </div>
+                                    <div class="quiz-skeleton-footer">
+                                        <div class="quiz-skeleton-date"></div>
+                                        <div class="quiz-skeleton-btn"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </template>
+
+    <!-- Template: Batch Card -->
+    <template id="batch-card-template">
+        <div class="batch-card">
+            <div class="batch-image skeleton-bg">
+                <img src="" alt="" class="lazy-image">
+                <button class="favorite-btn">
+                    <i class="fa-regular fa-heart"></i>
+                </button>
+            </div>
+            <div class="batch-content">
+                <div class="batch-tags">
+                    <span class="batch-tag language-tag skeleton-text"></span>
+                    <span class="batch-tag exam-tag skeleton-text"></span>
+                </div>
+                <h3 class="batch-title skeleton-text"></h3>
+                <p class="batch-subtitle skeleton-text"></p>
+                <div class="batch-footer">
+                    <span class="batch-date skeleton-text"></span>
+                    <a href="#" class="study-btn skeleton-btn">Let's Study</a>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template: Video Player -->
+    <template id="video-player-template">
+        <div class="video-player-container">
+            <div class="video-player-header">
+                <button class="close-video">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+                <h2 class="video-title"></h2>
+            </div>
+            <div class="video-wrapper">
+                <video id="content-video" controls class="video-player">
+                    <source src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template: Weekly Schedule -->
+    <template id="weekly-schedule-template">
+        <div class="weekly-schedule-page">
+
+            <div class="page-header-bar">
+                <div class="back-button">
+                    <a href="#" class="back-link" id="back-to-batch">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Batch
+                    </a>
+                </div>
+                                <div class="task-timer" data-expiry="1782397568">
+                    <i class="fa-regular fa-clock"></i>
+                    <span class="timer-text">Next Task: <strong class="timer-countdown">--:--:--</strong></span>
+                </div>
+                            </div>
+
+            <!-- Weekly Schedule View -->
+            <div id="weeklyScheduleView" class="view-content" style="display: none;">
+                <div class="view-container">
+                    <nav class="breadcrumb-nav">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a href="#" onclick="loadView('home'); return false;">
+                                    <i class="fa-solid fa-home"></i>
+                                    <span>Batches</span>
+                                </a>
+                            </li>
+                            <li class="breadcrumb-separator">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </li>
+                            <li class="breadcrumb-item" id="breadcrumbScheduleMahapack" style="display: none;">
+                                <span class="mahapack-link">Mahapack</span>
+                            </li>
+                            <li class="breadcrumb-separator" id="mahapackSeparator4" style="display: none;">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <span id="breadcrumbScheduleBatch" class="batch-link">Batch</span>
+                            </li>
+                            <li class="breadcrumb-separator">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </li>
+                            <li class="breadcrumb-item active">
+                                <span>Weekly Schedule</span>
+                            </li>
+                        </ol>
+                    </nav>
+
+                    <div class="back-button">
+                        <a href="javascript:void(0)" class="back-link" id="backFromScheduleBtn">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Back to Batch</span>
+                        </a>
+                    </div>
+
+                    <div id="weeklyScheduleContent">
+                        <!-- Content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="back-button" style="display: none;">
+                <a href="#" class="back-link-hidden" id="back-to-batch-hidden">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Batch
+                </a>
+            </div>
+
+            <!-- Quick Navigation -->
+            <div class="weekly-schedule-header-section">
+                <h1 class="page-title">
+                    <i class="fa-solid fa-calendar-week"></i>
+                    Weekly Schedule
+                </h1>
+                <p class="page-subtitle">View and manage your class schedule</p>
+            </div>
+
+            <div class="schedule-main-layout">
+
+                <!-- Sidebar for larger screens -->
+                <aside class="schedule-sidebar">
+                    <div class="subject-filter-section">
+                        <h3 class="sidebar-title">
+                            <i class="fa-solid fa-filter"></i>
+                            Subjects
+                        </h3>
+                        <div class="subject-filter-list" id="subject-filter-list">
+                            <!-- Subject filters will be loaded here -->
+                            <div class="filter-loading">
+                                <div class="loader-small"></div>
+                                <p>Loading subjects...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="calendar-section">
+                        <div class="calendar-header">
+                            <button class="calendar-nav-btn" id="prev-month">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <h3 class="calendar-month" id="calendar-month">November 2025</h3>
+                            <button class="calendar-nav-btn" id="next-month">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <button class="today-btn" id="today-btn">Today</button>
+                        <div class="calendar-grid" id="calendar-grid">
+                            <!-- Calendar will be rendered here -->
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Main content area -->
+                <main class="schedule-content">
+
+                    <!-- Mobile filter toggle -->
+                    <div class="mobile-filter-toggle">
+                        <button class="filter-toggle-btn" id="mobile-filter-toggle">
+                            <i class="fa-solid fa-filter"></i>
+                            <span>Filters & Calendar</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                    </div>
+
+                    <div class="schedule-list-section">
+                        <div class="schedule-list-header">
+                            <h2 class="selected-date-title" id="selected-date-title">Today's Schedule</h2>
+                            <span class="schedule-count" id="schedule-count">0 classes</span>
+                        </div>
+                        <div class="schedule-items-container" id="schedule-items-container">
+                            <!-- Schedule items will be loaded here -->
+                            <div class="schedule-loading">
+                                <div class="loader"></div>
+                                <p>Loading schedule...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+
+            </div>
+
+        </div>
+    </template>
+
+    <!-- =========================================================
+         HTML: Modals & Overlays
+         ========================================================= -->
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Search Modal -->
+    <div id="search-modal" class="search-modal">
+        <div class="search-modal-content">
+            <div class="search-modal-header">
+                <div class="search-modal-input-wrapper">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="modal-search-input" placeholder="Search batches..." autocomplete="off">
+                    <button id="modal-clear-search" class="clear-btn"><i class="fa-solid fa-times"></i></button>
+                </div>
+                <button id="close-search-modal" class="close-modal-btn">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div id="modal-search-results" class="modal-search-results">
+                <!-- Search results will appear here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Simple Clean Community Popup ===== -->
+    <div id="srOverlay">
+        <div id="srPopup">
+
+            <div id="srClose">✕</div>
+
+            <div id="srIcon">🚀</div>
+
+            <div id="srTitle">
+                Community
+            </div>
+
+            <div id="srSub">
+                Stay updated with latest materials,<br>
+                notes, PDFs and important notifications.
+            </div>
+
+            <div id="srBtns">
+              
+    <!-- =========================================================
+         JS: External Scripts
+         ========================================================= -->
+
+    <!-- Pako for decompression
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>-->
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
