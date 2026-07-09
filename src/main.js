@@ -304,7 +304,7 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
 
         try {
             // 🔥 THE MAGIC: तुम्हारे server.js को रिक्वेस्ट भेजना
-            const response = await fetch(`http://${window.location.hostname}:3000/api/get-batch-details?batchId=${batchId}`);
+            const response = await fetch(`https://srt-pro-osmopic.onrender.com/api/get-batch-details?batchId=${batchId}`);
             
             if (!response.ok) throw new Error("Proxy Server Connection Failed!");
             
