@@ -1,6 +1,6 @@
-const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
+import express from 'express';
+import cors from 'cors';
+import fs from 'fs';
 
 const app = express();
 app.use(cors());
@@ -11,7 +11,7 @@ app.use(cors());
 app.get('/api/get-batch-details', (req, res) => {
     try {
         // यह सीधे तुम्हारी फाइल से डेटा उठाएगा!
-        // अगर फाइल का नाम कुछ और है तो यहाँ बदल देना
+        // अगर फाइल का नाम कुछ और है तो यहाँ बदल देना (जैसे BatchInfo.json)
         const jsonData = fs.readFileSync('./Batches.json', 'utf-8'); 
         
         const data = JSON.parse(jsonData);
