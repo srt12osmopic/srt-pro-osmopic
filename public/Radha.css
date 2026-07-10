@@ -2314,12 +2314,12 @@ body:has(.batch-details-page.mahapack-batches-list) .app-footer {
 }
 
 .batches-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-    padding: var(--spacing-sm)
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; /*  */
+    gap: 20px; /*  */
 }
+
 
 .batch-card {
     background-color: var(--card-bg);
