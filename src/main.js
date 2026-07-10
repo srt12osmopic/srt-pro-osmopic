@@ -4,6 +4,7 @@ const CONFIG = {
     DETAILS_API_URL: 'https://srt-pro-osmopic.onrender.com/api/proxy' 
 };
 
+
 // ==========================================
 // 🧠 GLOBAL VARIABLES
 // ==========================================
