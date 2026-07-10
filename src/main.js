@@ -350,13 +350,12 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
         }
     }
     // 🔥 Khazana बटन का सेटअप
-const khazanaTabBtn = document.querySelector('button:contains("Khazana")') || document.getElementById('khazana-tab'); // अपनी HTML के हिसाब से ID सेट कर लेना
-const subjectsGrid = document.querySelector('#subjects-tab .subjects-grid'); // जहाँ डेटा दिखता है
+const khazanaTabBtn = document.getElementById('khazana-tab'); // अपनी HTML के हिसाब से सही ID
+const khazanaDisplayBox = document.querySelector('#subjects-tab .subjects-grid') || document.querySelector('#schedule-container'); 
 
-if (khazanaTabBtn) {
+if (khazanaTabBtn && khazanaDisplayBox) {
     khazanaTabBtn.addEventListener('click', async () => {
-        subjectsGrid.innerHTML = `<div style="padding: 40px; text-align: center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading Khazana...</div>`;
-    
+        khazanaDisplayBox.innerHTML = `<div style="padding: 40px; text-align: center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading Khazana...</div>`;
         alert("Khazana API link is missing! Study Rays से लिंक निकाल कर डालो!");
     });
 }
