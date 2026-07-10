@@ -1,7 +1,7 @@
-// 🗺️ 1. CONFIG: यहाँ से डेटा और API कंट्रोल होगा
 const CONFIG = {
     HOME_BATCHES_URL: 'https://semfy-gros.github.io/batches/batcha.json', 
-    DETAILS_API_URL: '[https://srt-pro-osmopic.onrender.com/api/proxy?url=https://vidcloud.eu.org/api/v2/batches/634bd315ed7a360018558283/subject/69beb1defa18934d859e3526/contents?tag=69d1e84d5d37ef7032108d51&contentType=notes&page=1](https://srt-pro-osmopic.onrender.com/api/proxy?url=https://vidcloud.eu.org/api/v2/batches/634bd315ed7a360018558283/subject/69beb1defa18934d859e3526/contents?tag=69d1e84d5d37ef7032108d51&contentType=notes&page=1)' 
+    // 🔥 बस इतना ही रखना है!
+    DETAILS_API_URL: 'https://srt-pro-osmopic.onrender.com/api/proxy' 
 };
 
 // ==========================================
@@ -198,17 +198,24 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
     
     let subjectsGrid = document.querySelector('#subjects-tab .subjects-grid') || document.querySelector('#schedule-container');
 
-    if (subjectsGrid) {
+        if (subjectsGrid) {
         subjectsGrid.innerHTML = `<div style="padding: 40px; text-align: center; width: 100%;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--primary-color); margin-bottom: 15px;"></i><p>Fetching Subjects...</p></div>`;
 
         try {
-            const response = await fetch(`${CONFIG.DETAILS_API_URL}?batchId=${batchId}`);
+            // 🔥 नया तरीका: पूरा URL बनाकर प्रोक्सी को भेजो
+            const pwDetailsUrl = `https://vidcloud.eu.org/api/v2/batches/${batchId}/details`;
+            const proxyUrl = `${CONFIG.DETAILS_API_URL}?url=${encodeURIComponent(pwDetailsUrl)}`;
+
+            const response = await fetch(proxyUrl);
             if (!response.ok) throw new Error("Proxy Server Failed!");
+
             const apiData = await response.json();
+            
+            // 🚨 यह लाइन मिस हो गई थी! इसके बिना Subjects नहीं मिलेंगे
             const subjects = apiData.data || apiData; 
 
             subjectsGrid.innerHTML = ''; 
-            
+
             if (!subjects || subjects.length === 0) {
                 subjectsGrid.innerHTML = `<p style="padding: 20px; text-align: center;">No subjects found.</p>`;
                 return;
@@ -217,10 +224,12 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
             subjects.forEach(sub => {
                 const subName = sub.subject || sub.name || "Unknown Subject";
                 const teacherName = (sub.teachers && sub.teachers.length > 0) ? "Multiple Teachers" : "Faculty";
+                
+                // 🔥 FIX: Dynamic Tag nikalne ka jugaad
+                const dynamicTag = (sub.tags && sub.tags.length > 0) ? sub.tags[0]._id || sub.tags[0].id : (sub.tagId || "");
 
-                // 🔥 नया क्लिक इवेंट: सब्जेक्ट पर क्लिक करने से वीडियो फेच होंगे
                 subjectsGrid.innerHTML += `
-                    <div class="subject-card" onclick="window.fetchAndShowLectures('${batchId}', '${sub._id || sub.id}', '69d1e84d5d37ef7032108d51')" style="padding: 20px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; box-shadow: var(--card-shadow); margin-bottom: 15px;">
+                    <div class="subject-card" onclick="window.fetchAndShowLectures('${batchId}', '${sub._id || sub.id}', '${dynamicTag}')" style="padding: 20px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; box-shadow: var(--card-shadow); margin-bottom: 15px;">
                         <div style="width: 50px; height: 50px; background: rgba(90, 75, 218, 0.1); color: var(--primary-color); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
                             <i class="fa-solid fa-book-open"></i>
                         </div>
@@ -235,7 +244,6 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
             subjectsGrid.innerHTML = `<div style="padding: 20px; text-align: center; color: #ef4444; width: 100%;"><i class="fa-solid fa-triangle-exclamation fa-2x" style="margin-bottom: 10px;"></i><p><b>Error:</b> Could not connect to proxy server.</p></div>`;
         }
     }
-};
 
 // ==========================================
 // 🎬 6. FETCH & RENDER LECTURES (VIDEOS)
