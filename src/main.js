@@ -11,7 +11,7 @@ const CONFIG = {
 let allBatchesData = [];
 let filteredBatches = [];
 let currentBatchCount = 0;
-const BATCHES_PER_PAGE = 20;
+const BATCHES_PER_PAGE = 21;
 const appView = document.getElementById('app-view');
 let favoriteBatches = JSON.parse(localStorage.getItem('favoriteBatches')) || [];
 
