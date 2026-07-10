@@ -1,7 +1,7 @@
 // 🗺️ 1. CONFIG: यहाँ से डेटा और API कंट्रोल होगा
 const CONFIG = {
     HOME_BATCHES_URL: 'https://semfy-gros.github.io/batches/batcha.json', 
-    DETAILS_API_URL: 'https://srt-pro-osmopic.onrender.com/api/get-batch-details' 
+    DETAILS_API_URL: '[https://srt-pro-osmopic.onrender.com/api/proxy?url=https://vidcloud.eu.org/api/v2/batches/634bd315ed7a360018558283/subject/69beb1defa18934d859e3526/contents?tag=69d1e84d5d37ef7032108d51&contentType=notes&page=1](https://srt-pro-osmopic.onrender.com/api/proxy?url=https://vidcloud.eu.org/api/v2/batches/634bd315ed7a360018558283/subject/69beb1defa18934d859e3526/contents?tag=69d1e84d5d37ef7032108d51&contentType=notes&page=1)' 
 };
 
 // ==========================================
@@ -252,7 +252,7 @@ window.fetchAndShowLectures = async (batchId, subjectId, tagId) => {
 
     try {
         const targetUrl = `https://vidcloud.eu.org/api/v2/batches/${batchId}/subject/${subjectId}/contents?tag=${tagId}&contentType=notes&page=1`;
-        const proxyUrl = `http://localhost:3000/api/proxy?url=${encodeURIComponent(targetUrl)}`;
+        const proxyUrl = `${CONFIG.DETAILS_API_URL}?url=${encodeURIComponent(targetUrl)}`;
 
         const response = await fetch(proxyUrl);
         const result = await response.json();
