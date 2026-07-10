@@ -1,9 +1,8 @@
+// 🗺️ 1. CONFIG: यहाँ से डेटा और API कंट्रोल होगा
 const CONFIG = {
     HOME_BATCHES_URL: 'https://semfy-gros.github.io/batches/batcha.json', 
-    // 🔥 बस इतना ही रखना है!
     DETAILS_API_URL: 'https://srt-pro-osmopic.onrender.com/api/proxy' 
 };
-
 
 // ==========================================
 // 🧠 GLOBAL VARIABLES
@@ -36,7 +35,7 @@ window.toggleFavorite = function(batchName, event) {
             icon.style.color = favoriteBatches.includes(batchName) ? '#ef4444' : '';
         }
     }
-}
+};
 
 // ==========================================
 // 🚀 3. APP INITIALIZATION (FETCH ONLINE JSON)
@@ -173,7 +172,7 @@ window.renderMoreBatches = function() {
         btnContainer.appendChild(btn);
         grid.appendChild(btnContainer);
     }
-}
+};
 
 // ==========================================
 // 📚 5. BATCH DETAILS (SUBJECTS FETCH)
@@ -199,11 +198,10 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
     
     let subjectsGrid = document.querySelector('#subjects-tab .subjects-grid') || document.querySelector('#schedule-container');
 
-        if (subjectsGrid) {
+    if (subjectsGrid) {
         subjectsGrid.innerHTML = `<div style="padding: 40px; text-align: center; width: 100%;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--primary-color); margin-bottom: 15px;"></i><p>Fetching Subjects...</p></div>`;
 
         try {
-            // 🔥 नया तरीका: पूरा URL बनाकर प्रोक्सी को भेजो
             const pwDetailsUrl = `https://vidcloud.eu.org/api/v2/batches/${batchId}/details`;
             const proxyUrl = `${CONFIG.DETAILS_API_URL}?url=${encodeURIComponent(pwDetailsUrl)}`;
 
@@ -211,8 +209,6 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
             if (!response.ok) throw new Error("Proxy Server Failed!");
 
             const apiData = await response.json();
-            
-            // 🚨 यह लाइन मिस हो गई थी! इसके बिना Subjects नहीं मिलेंगे
             const subjects = apiData.data || apiData; 
 
             subjectsGrid.innerHTML = ''; 
@@ -225,8 +221,6 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
             subjects.forEach(sub => {
                 const subName = sub.subject || sub.name || "Unknown Subject";
                 const teacherName = (sub.teachers && sub.teachers.length > 0) ? "Multiple Teachers" : "Faculty";
-                
-                // 🔥 FIX: Dynamic Tag nikalne ka jugaad
                 const dynamicTag = (sub.tags && sub.tags.length > 0) ? sub.tags[0]._id || sub.tags[0].id : (sub.tagId || "");
 
                 subjectsGrid.innerHTML += `
@@ -245,6 +239,7 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
             subjectsGrid.innerHTML = `<div style="padding: 20px; text-align: center; color: #ef4444; width: 100%;"><i class="fa-solid fa-triangle-exclamation fa-2x" style="margin-bottom: 10px;"></i><p><b>Error:</b> Could not connect to proxy server.</p></div>`;
         }
     }
+}; // 🔥 यह था वो गायब ब्रैकेट! मैंने इसे लगा दिया है।
 
 // ==========================================
 // 🎬 6. FETCH & RENDER LECTURES (VIDEOS)
