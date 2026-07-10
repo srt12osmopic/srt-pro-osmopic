@@ -202,7 +202,7 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
         subjectsGrid.innerHTML = `<div style="padding: 40px; text-align: center; width: 100%;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--primary-color); margin-bottom: 15px;"></i><p>Fetching Subjects...</p></div>`;
 
         try {
-            const pwDetailsUrl = `https://vidcloud.eu.org/api/v2/batches/${batchId}/details`;
+            const pwDetailsUrl = `https://api.penpencil.co/v3/batches/${batchId}/details`;
             const proxyUrl = `${CONFIG.DETAILS_API_URL}?url=${encodeURIComponent(pwDetailsUrl)}`;
 
             const response = await fetch(proxyUrl);
