@@ -1,26 +1,31 @@
-// 📊 1. Vercel Analytics चालू करो
-import { inject } from '@vercel/analytics';
-inject();
+import batchesDataRaw from '../database/batches.json';
 
-// 🗺️ 2. CONFIG: यहाँ से डेटा और API कंट्रोल होगा
-const CONFIG = {
-    HOME_BATCHES_URL: 'https://semfy-gros.github.io/batches/batcha.json', 
-    DETAILS_API_URL: 'https://srt-pro-osmopic.onrender.com/api/get-batch-details' 
-};
+// 🌟 VITE MAGIC: सारे बैचेस के सारे लेक्चर्स एक बार में रीड करो
+const allLectureFiles = import.meta.glob('../database/*/Lectures/*.json', { eager: true });
 
-// ==========================================
-// 🧠 GLOBAL VARIABLES
-// ==========================================
 let allBatchesData = [];
-let filteredBatches = [];
+if (Array.isArray(batchesDataRaw)) {
+    allBatchesData = batchesDataRaw;
+} else if (batchesDataRaw.data && Array.isArray(batchesDataRaw.data)) {
+    allBatchesData = batchesDataRaw.data;
+} else if (batchesDataRaw.batches && Array.isArray(batchesDataRaw.batches)) {
+    allBatchesData = batchesDataRaw.batches;
+}
+
+let filteredBatches = [...allBatchesData];
 let currentBatchCount = 0;
 const BATCHES_PER_PAGE = 20;
 const appView = document.getElementById('app-view');
+
+// ==========================================
+// 🧠 GLOBAL UTILS & FAVORITES LOGIC
+// ==========================================
 let favoriteBatches = JSON.parse(localStorage.getItem('favoriteBatches')) || [];
 
-// --- FAVORITES LOGIC (Global Window Scope) ---
-window.toggleFavorite = function(batchName, event) {
-    if (event) event.stopPropagation(); 
+function toggleFavorite(batchName, event) {
+    if (event) {
+        event.stopPropagation(); // Card ke click event ko rokne ke liye
+    }
     
     if (favoriteBatches.includes(batchName)) {
         favoriteBatches = favoriteBatches.filter(b => b !== batchName);
@@ -29,9 +34,11 @@ window.toggleFavorite = function(batchName, event) {
     }
     localStorage.setItem('favoriteBatches', JSON.stringify(favoriteBatches));
     
+    // Agar favorites page pe hain, toh turant refresh karo
     if (window.location.hash === '#favorites') {
-        renderBatchesPage(true); 
+        window.loadBatches(true);
     } else {
+        // Sirf dil ka color change karo
         const icon = event.currentTarget.querySelector('i');
         if (icon) {
             icon.classList.toggle('fa-regular');
@@ -41,51 +48,51 @@ window.toggleFavorite = function(batchName, event) {
     }
 }
 
-// ==========================================
-// 🚀 3. APP INITIALIZATION (FETCH ONLINE JSON)
-// ==========================================
-async function initApp() {
-    const grid = document.getElementById('batches-grid');
-    if (grid) grid.innerHTML = `<div style="text-align:center; width:100%; padding: 40px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p>Loading Batches...</p></div>`;
-
-    try {
-        const response = await fetch(CONFIG.HOME_BATCHES_URL);
-        if (!response.ok) throw new Error("Network Error");
-        const rawData = await response.json();
-        
-        if (Array.isArray(rawData)) allBatchesData = rawData;
-        else if (rawData.data && Array.isArray(rawData.data)) allBatchesData = rawData.data;
-        else if (rawData.batches && Array.isArray(rawData.batches)) allBatchesData = rawData.batches;
-
-        renderBatchesPage(window.location.hash === '#favorites');
-
-    } catch (error) {
-        console.error("Home Batches Load Error:", error);
-        if (grid) grid.innerHTML = `<div style="text-align:center; width:100%; color:red; padding:40px;"><b>Error:</b> Could not load batches. Cross-Origin (CORS) blocked or URL is wrong.</div>`;
+function loadTemplate(templateId) {
+    if (!appView) return false;
+    appView.innerHTML = ''; 
+    const template = document.getElementById(templateId);
+    if (template) {
+        appView.appendChild(template.content.cloneNode(true));
+        return true;
     }
+    return false;
 }
 
-// ==========================================
-// 🎨 4. RENDER DASHBOARD (SEARCH & FILTERS)
-// ==========================================
-function renderBatchesPage(isFavView = false) {
-    // 1. Load Template
-    if (appView) {
-        appView.innerHTML = '';
-        const template = document.getElementById('batches-template');
-        if (template) appView.appendChild(template.content.cloneNode(true));
-    }
-
-    // 2. Setup Filter Buttons (All / Favorites)
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-        btn.addEventListener('click', (e) => {
-            const filterType = e.currentTarget.getAttribute('data-filter');
-            window.location.hash = filterType === 'favorites' ? 'favorites' : 'batches';
-        });
-    });
+// 🚀 THE REAL ROUTER (With ID Support)
+function handleRouting() {
+    const hash = window.location.hash;
     
-    if(isFavView) {
+    if (hash === '' || hash === '#batches') {
+        window.loadBatches(false); 
+    } else if (hash === '#favorites') {
+        window.loadBatches(true); 
+    } 
+    // 🔥 URL में ID चेक करो (Example: #batch-details/65d862...)
+    else if (hash.startsWith('#batch-details/')) {
+        const urlParts = hash.split('/');
+        const batchId = urlParts[1];
+        
+        // LocalStorage से नाम और इमेज निकाल रहे हैं (ताकि API लोड होने से पहले UI अच्छा दिखे)
+        const savedName = localStorage.getItem('currentBatchName') || "Loading Batch...";
+        const savedImg = localStorage.getItem('currentBatchImg') || "";
+        
+        window.openBatchDetails(batchId, savedName, savedImg);
+    }
+}
+window.addEventListener('hashchange', handleRouting);
+
+// ==========================================
+// 🚀 1. DASHBOARD, SEARCH & STUDY MATERIAL LOGIC 
+// ==========================================
+window.loadBatches = (isFavoritesView = false) => {
+    const loaded = loadTemplate('batches-template'); 
+    if (!loaded) return;
+    
+    // Header Navigation Style Change
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => btn.classList.remove('active'));
+    if(isFavoritesView) {
         document.querySelector('.filter-btn[data-filter="favorites"]')?.classList.add('active');
         filteredBatches = allBatchesData.filter(batch => favoriteBatches.includes(batch.name || batch.batchName));
     } else {
@@ -93,44 +100,101 @@ function renderBatchesPage(isFavView = false) {
         filteredBatches = [...allBatchesData];
     }
 
-    // 3. Setup Live Search (The Fix!)
+    // --- Study Material Dropdown Logic ---
+    const studyHeader = document.getElementById('study-material-header');
+    const studyBody = document.getElementById('study-material-body');
+    const studyArrow = document.getElementById('study-material-arrow');
+
+    if (studyHeader && studyBody) {
+        studyHeader.addEventListener('click', () => {
+            const isClosed = studyBody.style.display === 'none' || studyBody.style.display === '';
+            studyBody.style.display = isClosed ? 'block' : 'none';
+            if (studyArrow) {
+                studyArrow.style.transform = isClosed ? 'rotate(180deg)' : 'rotate(0deg)';
+            }
+        });
+    }
+
+    // --- Search & Live Suggestions Logic ---
     const searchInput = document.getElementById('search-input');
+    const clearSearchBtn = document.getElementById('clear-search');
+    const searchSuggestions = document.getElementById('search-suggestions');
+
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase().trim();
+            
             if (query === '') {
-                filteredBatches = isFavView ? allBatchesData.filter(b => favoriteBatches.includes(b.name || b.batchName)) : [...allBatchesData]; 
+                filteredBatches = isFavoritesView ? allBatchesData.filter(b => favoriteBatches.includes(b.name || b.batchName)) : [...allBatchesData]; 
+                if(searchSuggestions) searchSuggestions.style.display = 'none';
             } else {
                 filteredBatches = allBatchesData.filter(batch => {
                     const bName = (batch.name || batch.batchName || "").toLowerCase();
                     return bName.includes(query);
                 });
+                
+                // Show Dropdown Suggestions (Like video reference)
+                if(searchSuggestions) {
+                    searchSuggestions.innerHTML = '';
+                    if(filteredBatches.length > 0) {
+                        filteredBatches.slice(0, 5).forEach(batch => {
+                            const bName = batch.name || batch.batchName || "Unknown";
+                            const li = document.createElement('div');
+                            li.style = "padding: 10px; border-bottom: 1px solid var(--card-border); cursor: pointer; color: var(--text-primary);";
+                            li.innerHTML = `<i class="fa-solid fa-book" style="margin-right: 10px;"></i> ${bName}`;
+                            li.onclick = () => {
+                                searchInput.value = bName;
+                                searchSuggestions.style.display = 'none';
+                                filteredBatches = [batch]; // Show only selected
+                                currentBatchCount = 0;
+                                document.getElementById('batches-grid').innerHTML = '';
+                                window.renderMoreBatches();
+                            };
+                            searchSuggestions.appendChild(li);
+                        });
+                        searchSuggestions.style.display = 'block';
+                        searchSuggestions.style.position = 'absolute';
+                        searchSuggestions.style.background = 'var(--card-bg)';
+                        searchSuggestions.style.width = '100%';
+                        searchSuggestions.style.zIndex = '100';
+                        searchSuggestions.style.boxShadow = 'var(--card-shadow)';
+                    } else {
+                        searchSuggestions.style.display = 'none';
+                    }
+                }
             }
+            
             currentBatchCount = 0;
-            document.getElementById('batches-grid').innerHTML = '';
+            const grid = document.getElementById('batches-grid');
+            if (grid) grid.innerHTML = '';
+            window.renderMoreBatches();
+        });
+
+        // Hide suggestions on outside click
+        document.addEventListener('click', (e) => {
+            if (searchSuggestions && e.target !== searchInput) {
+                searchSuggestions.style.display = 'none';
+            }
+        });
+    }
+
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+            if(searchInput) searchInput.value = '';
+            if(searchSuggestions) searchSuggestions.style.display = 'none';
+            filteredBatches = isFavoritesView ? allBatchesData.filter(b => favoriteBatches.includes(b.name || b.batchName)) : [...allBatchesData];
+            currentBatchCount = 0;
+            const grid = document.getElementById('batches-grid');
+            if (grid) grid.innerHTML = '';
             window.renderMoreBatches();
         });
     }
 
-    // 4. Clean Khazana Event Listener (अगर सर्च के नीचे Khazana टैब है)
-    const khazanaTabsBtn = document.querySelectorAll('.tab-btn[data-tab="khazana"]');
-    khazanaTabsBtn.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const khazanaDisplayBox = document.querySelector('#khazana-tab .khazana-batch-section') || document.querySelector('#khazana-tab');
-            if(khazanaDisplayBox) {
-                khazanaDisplayBox.innerHTML = `<div style="padding: 40px; text-align: center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading Khazana...</div>`;
-                alert("Khazana API link is missing!");
-            }
-        });
-    });
-
-    // 5. Render Grid Initially
     currentBatchCount = 0;
     window.renderMoreBatches();
-}
+};
 
-// --- RENDER BATCH CARDS & LOAD MORE ---
-window.renderMoreBatches = function() {
+window.renderMoreBatches = () => {
     const grid = document.getElementById('batches-grid');
     if (!grid) return;
 
@@ -140,31 +204,35 @@ window.renderMoreBatches = function() {
     }
 
     const nextBatches = filteredBatches.slice(currentBatchCount, currentBatchCount + BATCHES_PER_PAGE);
-    const existingBtn = document.getElementById('real-load-more-btn');
-    if (existingBtn) existingBtn.remove();
+    let myLoadMoreBtn = document.getElementById('real-load-more-btn');
+    if (myLoadMoreBtn) myLoadMoreBtn.remove();
 
     nextBatches.forEach(batch => {
+        // 🔥 असली ID निकालने वाली लाइन (यह नई जुड़ी है)
         const batchId = batch.batch_id || batch._id || batch.id;
+        
         const batchName = batch.name || batch.batchName || "Premium Batch";
         const batchClass = batch.class || batch.className || "Live";
         const imageUrl = batch.previewImage || batch.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(batchName)}&background=5a4bda&color=fff&size=300`;
+        const folderSearchName = (batch.slug || batchName).toLowerCase().replace(/\s+/g, '_');
         const isFav = favoriteBatches.includes(batchName);
 
         const card = document.createElement('div');
         card.className = 'batch-card'; 
         card.style.cursor = 'pointer';
+        card.style.position = 'relative'; 
         
+        // 🚀 क्लिक करने पर अब ID URL में जाएगी
         card.onclick = () => {
             localStorage.setItem('currentBatchName', batchName);
             localStorage.setItem('currentBatchImg', imageUrl);
             window.location.hash = `batch-details/${batchId}`; 
         };
 
-        // 🔥 Favorites button click logic fixed!
         card.innerHTML = `
             <div class="batch-image">
                 <img src="${imageUrl}" style="width:100%; height:150px; object-fit:cover;">
-                <button class="favorite-btn" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); border: none; border-radius: 50%; padding: 8px; cursor: pointer; color: ${isFav ? '#ef4444' : '#fff'}; z-index: 10;" onclick="window.toggleFavorite('${batchName.replace(/'/g, "\\'")}', event)">
+                <button class="favorite-btn" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); border: none; border-radius: 50%; padding: 8px; cursor: pointer; color: ${isFav ? '#ef4444' : '#fff'}; z-index: 10;">
                     <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
                 </button>
             </div>
@@ -176,10 +244,15 @@ window.renderMoreBatches = function() {
                 </div>
             </div>
         `;
+        
+        const favBtn = card.querySelector('.favorite-btn');
+        favBtn.addEventListener('click', (e) => toggleFavorite(batchName, e));
+        
         grid.appendChild(card); 
     });
 
     currentBatchCount += nextBatches.length;
+
     if (currentBatchCount < filteredBatches.length) {
         const btnContainer = document.createElement('div');
         btnContainer.id = 'real-load-more-btn';
@@ -189,22 +262,20 @@ window.renderMoreBatches = function() {
         const btn = document.createElement('button');
         btn.className = 'community-banner-btn'; 
         btn.innerHTML = `Load More (${filteredBatches.length - currentBatchCount} left) <i class="fa-solid fa-rotate-right"></i>`;
-        btn.onclick = window.renderMoreBatches; // 🔥 Load More fixed
+        btn.onclick = window.renderMoreBatches;
         
         btnContainer.appendChild(btn);
         grid.appendChild(btnContainer);
     }
-}
+};
 
 // ==========================================
-// 📚 5. BATCH DETAILS (RENDER API FETCH)
+// 📚 2. BATCH DETAILS (REAL API FETCH)
 // ==========================================
 window.openBatchDetails = async (batchId, batchName, imageUrl) => {
-    if (appView) {
-        appView.innerHTML = '';
-        const template = document.getElementById('batch-details-template');
-        if (template) appView.appendChild(template.content.cloneNode(true));
-    }
+    // 1. UI Setup 
+    const loaded = loadTemplate('batch-details-template'); 
+    if (!loaded) return;
     
     const titleElement = document.querySelector('.batch-title');
     if (titleElement) { 
@@ -218,30 +289,46 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
         imageContainer.innerHTML = `<img src="${imageUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:12px; position:absolute; top:0; left:0;">`;
     }
     
-    let subjectsGrid = document.querySelector('#subjects-tab .subjects-grid') || document.querySelector('#schedule-container');
+    // 2. Subjects लोड करने के लिए सही जगह ढूँढना (तुम्हारी index.html के हिसाब से)
+    let subjectsGrid = document.querySelector('#subjects-tab .subjects-grid');
+    if (!subjectsGrid) {
+        // अगर Subjects टैब नहीं मिला, तो Schedule वाले में दिखाएंगे
+        subjectsGrid = document.querySelector('#schedule-container');
+    }
 
     if (subjectsGrid) {
-        subjectsGrid.innerHTML = `<div style="padding: 40px; text-align: center; width: 100%;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--primary-color); margin-bottom: 15px;"></i><p>Fetching Subjects from Server...</p></div>`;
+        subjectsGrid.innerHTML = `<div style="padding: 40px; text-align: center; width: 100%;">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 30px; color: var(--primary-color); margin-bottom: 15px;"></i>
+            <p>Fetching Subjects from API...</p>
+        </div>`;
 
         try {
-            const response = await fetch(`${CONFIG.DETAILS_API_URL}?batchId=${batchId}`);
-            if (!response.ok) throw new Error("Proxy Server Failed!");
+            // 🔥 THE MAGIC: तुम्हारे server.js को रिक्वेस्ट भेजना
+            const response = await fetch(`https://srt-pro-osmopic.onrender.com/api/get-batch-details?batchId=${batchId}`);
+            
+            if (!response.ok) throw new Error("Proxy Server Connection Failed!");
+            
             const apiData = await response.json();
+            
+            // PW API का डेटा स्ट्रक्चर आमतौर पर data.data में होता है
             const subjects = apiData.data || apiData; 
 
-            subjectsGrid.innerHTML = ''; 
+            subjectsGrid.innerHTML = ''; // लोडर हटाओ
             
             if (!subjects || subjects.length === 0) {
                 subjectsGrid.innerHTML = `<p style="padding: 20px; text-align: center;">No subjects found.</p>`;
                 return;
             }
 
+            // 🚀 3. Subjects को स्क्रीन पर छापना
             subjects.forEach(sub => {
                 const subName = sub.subject || sub.name || "Unknown Subject";
+                // टीचर का नाम अगर API में है तो निकालो, वरना डिफॉल्ट लिखो
                 const teacherName = (sub.teachers && sub.teachers.length > 0) ? "Multiple Teachers" : "Faculty";
 
                 subjectsGrid.innerHTML += `
-                    <div class="subject-card" style="padding: 20px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; box-shadow: var(--card-shadow); margin-bottom: 15px;">
+                    <div class="subject-card" style="padding: 20px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; box-shadow: var(--card-shadow); margin-bottom: 15px;"
+                         onclick="alert('Next Step: Fetch chapters for Subject ID: ${sub._id}')">
                         <div style="width: 50px; height: 50px; background: rgba(90, 75, 218, 0.1); color: var(--primary-color); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
                             <i class="fa-solid fa-book-open"></i>
                         </div>
@@ -252,52 +339,272 @@ window.openBatchDetails = async (batchId, batchName, imageUrl) => {
                     </div>
                 `;
             });
+
         } catch (error) {
-            subjectsGrid.innerHTML = `<div style="padding: 20px; text-align: center; color: #ef4444; width: 100%;"><i class="fa-solid fa-triangle-exclamation fa-2x" style="margin-bottom: 10px;"></i><p><b>Error:</b> Could not connect to proxy server.</p></div>`;
+            console.error("Fetch Error:", error);
+            subjectsGrid.innerHTML = `<div style="padding: 20px; text-align: center; color: #ef4444; width: 100%;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 30px; margin-bottom: 10px;"></i>
+                <p><b>Error:</b> Could not connect to the proxy server.</p>
+                <p style="font-size: 12px;">Make sure your server.js is running in the terminal.</p>
+            </div>`;
+        }
+    }
+};
+
+function renderChapters(teacherId, allLectures) {
+    const container = document.getElementById('chapters-container');
+    container.innerHTML = '';
+    
+    const teacherLectures = allLectures.filter(l => l.teachers && l.teachers.includes(teacherId));
+    const chaptersMap = {};
+    
+    teacherLectures.forEach(lec => {
+        const chapName = (lec.tags && lec.tags.length > 0 && lec.tags[0].name) ? lec.tags[0].name : 'Other Topics';
+        if (!chaptersMap[chapName]) chaptersMap[chapName] = [];
+        chaptersMap[chapName].push(lec);
+    });
+
+    for (const chapName in chaptersMap) {
+        const chapDiv = document.createElement('div');
+        chapDiv.style.marginBottom = '25px';
+        chapDiv.innerHTML = `<h3 style="margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid var(--primary-color); display: inline-block;">📁 ${chapName}</h3>`;
+        
+        chaptersMap[chapName].forEach(lec => {
+            const formattedDate = lec.date ? new Date(lec.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+            const safeTitle = lec.topic ? lec.topic.replace(/'/g, "\\'") : 'Unknown Lecture';
+            const videoUrl = lec.url || (lec.videoDetails && lec.videoDetails.videoUrl) || '';
+            const duration = (lec.videoDetails && lec.videoDetails.duration) ? lec.videoDetails.duration : 'N/A';
+
+            chapDiv.innerHTML += `
+                <div class="lecture-card" style="margin-bottom: 12px; cursor: pointer; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;" 
+                     onclick="window.playDRMVideo('${safeTitle}', '${videoUrl}')">
+                    <div class="lecture-content" style="padding: 15px; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 45px; height: 45px; border-radius: 50%; background: rgba(90, 75, 218, 0.1); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                                <i class="fa-solid fa-play"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0 0 5px 0; font-size: 15px; color: var(--text-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${lec.topic}</h4>
+                                <div style="margin: 0; font-size: 12px; color: var(--text-secondary);">
+                                    <span><i class="fa-regular fa-clock"></i> ${duration}</span>
+                                    <span style="margin: 0 5px;">•</span>
+                                    <span><i class="fa-regular fa-calendar"></i> ${formattedDate}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.appendChild(chapDiv);
+    }
+}
+
+// ==========================================
+// 🎬 4. SHAKA PLAYER LOGIC
+// ==========================================
+window.playDRMVideo = async (lectureTitle, rawMpdUrl) => {
+    window.location.hash = 'player';
+    const loaded = loadTemplate('video-player-template');
+    if (!loaded) return;
+    
+    const titleEl = appView.querySelector('.video-title');
+    if (titleEl) titleEl.textContent = lectureTitle;
+
+    const videoElement = appView.querySelector('#content-video');
+    const closeBtn = appView.querySelector('.close-video');
+    
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            if (window.shakaPlayerInstance) window.shakaPlayerInstance.destroy();
+            window.history.back(); 
+        };
+    }
+
+    if (videoElement) {
+        shaka.polyfill.installAll();
+        window.shakaPlayerInstance = new shaka.Player(videoElement);
+        
+        window.shakaPlayerInstance.addEventListener('error', (e) => {
+            console.error("DRM Error:", e.detail.code);
+        });
+
+        const proxyUrl = `https://srt-pro-osmopic.onrender.com/api/get-batch-details?batchId=${batchId}`;
+        
+        try {
+            await window.shakaPlayerInstance.load(proxyUrl);
+        } catch (error) {
+            console.error("Load failed", error);
         }
     }
 };
 
 // ==========================================
-// ⚙️ 6. ROUTER & GLOBAL EVENTS (The Header Fix!)
+// ⚙️ 5. GLOBAL HEADER EVENTS & MODALS (APP SHELL)
 // ==========================================
-function handleRouting() {
-    const hash = window.location.hash;
-    if (hash === '' || hash === '#batches' || hash === '#favorites') {
-        if (allBatchesData.length === 0) {
-            initApp(); 
-        } else {
-            renderBatchesPage(hash === '#favorites'); 
-        }
-    } else if (hash.startsWith('#batch-details/')) {
-        const urlParts = hash.split('/');
-        const batchId = urlParts[1];
-        const savedName = localStorage.getItem('currentBatchName') || "Loading...";
-        const savedImg = localStorage.getItem('currentBatchImg') || "";
-        window.openBatchDetails(batchId, savedName, savedImg);
-    }
-}
-
-// 🌙 Header Icons Logic (Dark Mode, Refresh, etc.)
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Reload Button
+    
+    // --- 1. Reload Button ---
     const reloadBtn = document.getElementById('reload-app');
-    if (reloadBtn) reloadBtn.addEventListener('click', () => window.location.reload());
-
-    // 2. Dark Mode Toggle
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
-        if(localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    if (reloadBtn) {
+        reloadBtn.addEventListener('click', () => {
+            window.location.reload();
         });
     }
 
-    // Start App Router
+    // --- 2. Theme Modal ---
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeModal = document.getElementById('theme-modal');
+    if (themeToggle && themeModal) {
+        themeToggle.addEventListener('click', () => {
+            themeModal.style.display = 'flex';
+        });
+
+        // Setup theme click options
+        const themeOptions = document.querySelectorAll('.theme-option');
+        themeOptions.forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                const selectedTheme = e.currentTarget.getAttribute('data-theme');
+                if (selectedTheme === 'auto') {
+                    document.documentElement.removeAttribute('data-theme');
+                } else {
+                    document.documentElement.setAttribute('data-theme', selectedTheme);
+                }
+                themeModal.style.display = 'none';
+            });
+        });
+    }
+
+    // --- 3. Search Modal ---
+    const headerSearchBtn = document.getElementById('header-search-btn');
+    const searchModal = document.getElementById('search-modal');
+    const closeSearchModal = document.getElementById('close-search-modal');
+    const modalSearchInput = document.getElementById('modal-search-input');
+    const modalClearSearch = document.getElementById('modal-clear-search');
+    const modalSearchResults = document.getElementById('modal-search-results');
+
+    if (headerSearchBtn && searchModal) {
+        headerSearchBtn.addEventListener('click', () => {
+            searchModal.style.display = 'block';
+            if(modalSearchInput) modalSearchInput.focus();
+        });
+
+        if (closeSearchModal) {
+            closeSearchModal.addEventListener('click', () => {
+                searchModal.style.display = 'none';
+            });
+        }
+
+        if (modalSearchInput) {
+            modalSearchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                modalSearchResults.innerHTML = '';
+                
+                if(query !== '') {
+                    const matches = allBatchesData.filter(b => (b.name || b.batchName || "").toLowerCase().includes(query)).slice(0, 8);
+                    
+                    if (matches.length === 0) {
+                        modalSearchResults.innerHTML = '<p style="padding: 20px; text-align: center; color: var(--text-secondary);">No batches found.</p>';
+                    } else {
+                        matches.forEach(batch => {
+                            const resultItem = document.createElement('div');
+                            resultItem.style = "padding: 12px; border-bottom: 1px solid var(--card-border); cursor: pointer; display: flex; align-items: center; gap: 10px;";
+                            resultItem.innerHTML = `<i class="fa-solid fa-search"></i> <span>${batch.name || batch.batchName}</span>`;
+                            resultItem.onclick = () => {
+                                searchModal.style.display = 'none';
+                                const folderSearchName = (batch.slug || batch.name || batch.batchName).toLowerCase().replace(/\s+/g, '_');
+                                const imageUrl = batch.previewImage || batch.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(batch.name)}&background=5a4bda&color=fff&size=300`;
+                                window.openBatchDetails(batch.name || batch.batchName, imageUrl, folderSearchName);
+                            };
+                            modalSearchResults.appendChild(resultItem);
+                        });
+                    }
+                }
+            });
+        }
+
+        if (modalClearSearch) {
+            modalClearSearch.addEventListener('click', () => {
+                if(modalSearchInput) modalSearchInput.value = '';
+                if(modalSearchResults) modalSearchResults.innerHTML = '';
+            });
+        }
+    }
+    
+    // Initial Route Load
     setTimeout(() => { handleRouting(); }, 100);
 });
 
-window.addEventListener('hashchange', handleRouting);
+// ==========================================
+// 🎬 FETCH & RENDER LECTURES (USING NEW PROXY)
+// ==========================================
+window.fetchAndShowLectures = async (batchId, subjectId, tagId) => {
+    // जहाँ लेक्चर्स दिखने हैं, उस डिब्बे (Container) को सेलेक्ट करो
+    // (मान लो तुम्हारे HTML में 'lectures-container' नाम का कोई div है)
+    const container = document.getElementById('lectures-container') || document.getElementById('subjects-tab'); 
+    
+    if (!container) return;
+
+    container.innerHTML = `<div style="padding: 40px; text-align: center;">
+        <i class="fa-solid fa-spinner fa-spin fa-2x" style="color: var(--primary-color);"></i>
+        <p>Loading Awesome Lectures...</p>
+    </div>`;
+
+    try {
+        // 1. तुम्हारा असली टारगेट URL (जो तुमने मुझे भेजा था)
+        const targetUrl = `https://vidcloud.eu.org/api/v2/batches/${batchId}/subject/${subjectId}/contents?tag=${tagId}&contentType=notes&page=1`;
+        
+        // 2. हमारे यूनिवर्सल सर्वर (Proxy) का URL
+        // (ध्यान रहे, जब तुम इसे Vercel पर लाइव करोगी, तो localhost की जगह अपने Render सर्वर का लिंक डालना)
+        const proxyUrl = `http://localhost:3000/api/proxy?url=${encodeURIComponent(targetUrl)}`;
+
+        // 3. डेटा मंगाओ
+        const response = await fetch(proxyUrl);
+        const result = await response.json();
+        
+        // JSON के अंदर से असली डेटा (Array) निकालो
+        const lectures = result.data.data; 
+
+        container.innerHTML = ''; // लोडिंग वाला एनीमेशन हटाओ
+
+        if (!lectures || lectures.length === 0) {
+            container.innerHTML = `<p style="text-align:center;">No lectures found here!</p>`;
+            return;
+        }
+
+        // 4. हर लेक्चर के लिए एक सुंदर कार्ड बनाओ
+        let html = '<h3 style="margin-bottom: 20px;">📚 Your Lectures</h3>';
+        
+        lectures.forEach(lec => {
+            const title = lec.topic || "Unknown Topic";
+            const duration = lec.videoDetails?.duration || "N/A";
+            const videoUrl = lec.videoDetails?.videoUrl || "";
+            const date = new Date(lec.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            html += `
+                <div class="lecture-card" style="padding: 15px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--card-shadow);">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div style="width: 40px; height: 40px; background: rgba(90, 75, 218, 0.1); color: var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-play"></i>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 5px 0; color: var(--text-primary); font-size: 15px;">${title}</h4>
+                            <p style="margin: 0; color: var(--text-secondary); font-size: 12px;">
+                                <i class="fa-regular fa-clock"></i> ${duration} &nbsp;|&nbsp; 
+                                <i class="fa-regular fa-calendar"></i> ${date}
+                            </p>
+                        </div>
+                    </div>
+                    <button class="study-btn" onclick="alert('Video Link: ${videoUrl}')" style="padding: 8px 15px; font-size: 12px;">Play</button>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error("Lecture Fetch Error:", error);
+        container.innerHTML = `<div style="text-align:center; color:red;"><b>Error:</b> Could not load lectures!</div>`;
+    }
+};
+
