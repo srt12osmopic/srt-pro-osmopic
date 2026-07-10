@@ -541,20 +541,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-    // 🔥 FIX: All Batches और Favorites के बीच स्विच करने वाला कोड
-const filterButtons = document.querySelectorAll('.filter-btn');
-filterButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const filterType = e.currentTarget.getAttribute('data-filter');
-        if (filterType === 'favorites') {
-            window.location.hash = 'favorites'; // Favorites पेज पर जाओ
-        } else {
-            window.location.hash = 'batches'; // वापस All Batches पर जाओ
-        }
+       // 🔥 FIX: All Batches और Favorites के बीच स्विच करने वाला कोड
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const filterType = e.currentTarget.getAttribute('data-filter');
+            if (filterType === 'favorites') {
+                window.location.hash = 'favorites';
+            } else {
+                window.location.hash = 'batches';
+            }
+        });
     });
-});
 
-    
     // Initial Route Load
     setTimeout(() => { handleRouting(); }, 100);
 });
