@@ -5,7 +5,7 @@ const app = express();
 app.use(cors());
 
 // 🔑 THE MASTER KEY (अपना असली Study Rays वाला Bearer Token यहाँ डालना है)
-const AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3ODQxMTExNjUuNjM1LCJkYXRhIjp7Il9pZCI6IjY1MDZhMDY5MzJiZjc3MDAxOGJlZDU3NCIsInVzZXJuYW1lIjoiOTEwMzU1NDk1NCIsImZpcnN0TmFtZSI6IkxvYWQiLCJsYXN0TmFtZSI6IkluZyIsIm9yZ2FuaXphdGlvbiI6eyJfaWQiOiI1ZWIzOTNlZTk1ZmFiNzQ2OGE3OWQxODkiLCJ3ZWJzaXRlIjoicGh5c2ljc3dhbGxhaC5jb20iLCJuYW1lIjoiUGh5c2ljc3dhbGxhaCJ9LCJlbWFpbCI6ImRhcmFkZWViYTQzQGdtYWlsLmNvbSIsInJvbGVzIjpbIjViMjdiZDk2NTg0MmY5NTBhNzc4YzZlZiJdLCJjb3VudHJ5R3JvdXAiOiJJTiIsIm9uZVJvbGVzIjpbXSwidHlwZSI6IlVTRVIifSwianRpIjoiNGR3UHBCcDVUTWV2WVBvUGd2UzNDd182NTA2YTA2OTMyYmY3NzAwMThiZWQ1NzQiLCJpYXQiOjE3ODM1MDYzNjV9.E2NEGeYvp4R5A6KBRwxec1CndVrdSqR99QZk_aKHA8M";
+const AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3ODQxODE0NTcuODksImRhdGEiOnsiX2lkIjoiNjdhN2I5YzI1M2E4OWYyNDUyNTVmYTlhIiwidXNlcm5hbWUiOiI5OTE3Njc2OTcyIiwiZmlyc3ROYW1lIjoiQWtoaWxlc2giLCJvcmdhbml6YXRpb24iOnsiX2lkIjoiNWViMzkzZWU5NWZhYjc0NjhhNzlkMTg5Iiwid2Vic2l0ZSI6InBoeXNpY3N3YWxsYWguY29tIiwibmFtZSI6IlBoeXNpY3N3YWxsYWgifSwicm9sZXMiOlsiNWIyN2JkOTY1ODQyZjk1MGE3NzhjNmVmIl0sImNvdW50cnlHcm91cCI6IklOIiwib25lUm9sZXMiOltdLCJ0eXBlIjoiVVNFUiJ9LCJqdGkiOiJNZGdOZWJHSFRKeTROcWxkdUQtVEtRXzY3YTdiOWMyNTNhODlmMjQ1MjU1ZmE5YSIsImlhdCI6MTc4MzU3NjY1N30.Ye7VZ5UuextMoKXlrSI1pjW-EUDTULNTUZ_MmlbGt1M";
 
 // ==========================================
 // 🚀 1. DYNAMIC BATCH FETCHER (STUDY RAYS PROXY ROUTE)
@@ -29,8 +29,8 @@ app.get('/api/get-batch-details', async (req, res) => {
                 'Client-Id': '5eb393ee95fab7468a79d189',
                 'Client-Type': 'WEB',
                 'Client-Version': '2.2.7',
-                'Origin': 'https://s4-cdn.samfygros.com',
-                'Referer': 'https://s4-cdn.samfygros.com/',
+                'Origin': 'https://vidcloud.eu.org',
+                'Referer': 'https://vidcloud.eu.org/',
                 'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
                 'Accept': 'application/json',
                 'Accept-Encoding': 'gzip, deflate, br, zstd',
